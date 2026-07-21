@@ -1,0 +1,9 @@
+coverage==7.14.1
+hypothesis==6.155.3
+numpy==2.4.6
+opencv-python==5.0.0.93
+pillow==12.2.0
+pytest==9.1.0
+pytest-cov==7.1.0
+tensorflow==2.21.0
+typing_extensions==4.15.0
