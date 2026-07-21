@@ -1,6 +1,3 @@
-# Ignore raw video datasets and heavy source footage
-data/*.mp4
-
 dataset/
 datasets/
 
