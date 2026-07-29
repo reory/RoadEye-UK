@@ -1,7 +1,9 @@
 import numpy as np
-import pytest #noqa
+import pytest  #noqa
+from hypothesis import HealthCheck, given, settings
+from hypothesis import strategies as st
 from PIL import Image
-from hypothesis import given, strategies as st, settings, HealthCheck
+
 from src.data_loader import load_traffic_data
 
 # Blacklist of words that Windows handles as system hardware devices instead of folders
@@ -67,7 +69,7 @@ def test_load_traffic_data_with_valid_images(tmp_path):
         img.save(uk_dir / f"sign_{i}.png")
         
     # Execute the loader on the populated directory
-    images, labels = load_traffic_data(str(dataset_dir))
+    images, _labels = load_traffic_data(str(dataset_dir))
     
     # Assertions to verify the missing lines executed successfully
     assert isinstance(images, np.ndarray)

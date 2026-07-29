@@ -87,7 +87,7 @@ Make sure the footage is short 10 - 30 secs
 To launch the real-time dashcam processing window interface, execute the application core directly:
 
 ```Bash
-python src/video_stream.py
+python -m src/video_stream.py
 ```
 ### Controls & Controls Customization
 - Quit Stream: Press the ctrl + c key at any point while the window display loop is selected to terminate the worker threads, release the video handle, and close active view windows safely.

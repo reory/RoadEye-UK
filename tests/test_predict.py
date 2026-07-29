@@ -1,6 +1,8 @@
 from unittest.mock import MagicMock, patch
+
 import numpy as np
-import pytest #noqa
+import pytest  #noqa
+
 from src.predict import evaluate_all_images
 
 

@@ -1,6 +1,8 @@
 import os
+
 import numpy as np
 from PIL import Image
+
 
 def load_traffic_data(data_dir, target_size=(224, 224)):
     """
@@ -41,7 +43,7 @@ def load_traffic_data(data_dir, target_size=(224, 224)):
                             images.append(np.array(img))
                             # Use folder name as the text label
                             labels.append(folder_name)
-                        except Exception as e:
+                        except (ValueError, RuntimeError) as e:
                             print(f"❌ Skipping broken image {img_name}: {e}")
 
     return np.array(images), np.array(labels)

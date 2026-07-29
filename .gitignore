@@ -8,6 +8,7 @@ datasets/
 
 models/*.h5
 models/*.pb
+*models/
 
 # Ignore the dynamic debugging image dump folder
 debug_crops/

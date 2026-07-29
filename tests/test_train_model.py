@@ -1,8 +1,10 @@
+import runpy
 import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
+
 import numpy as np
-import runpy
+
 
 def test_train_model_script_execution():
     """

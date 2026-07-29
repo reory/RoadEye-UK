@@ -1,8 +1,10 @@
 import threading
 from unittest.mock import MagicMock, patch
+
 import cv2
 import numpy as np
 import pytest
+
 from src.video_stream import VideoStreamProcessor
 
 

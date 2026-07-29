@@ -1,6 +1,6 @@
+import logging
 import os
 import warnings
-import logging
 
 # Force TensorFlow to silence errors/warnings
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
@@ -9,12 +9,12 @@ os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 # Block the Python-level logging output from TensorFlow
 logging.getLogger('tensorflow').setLevel(logging.ERROR)
 
-import numpy as np #noqa
-import tensorflow as tf #noqa
+import numpy as np
+import tensorflow as tf
+from sklearn.model_selection import train_test_split
+from tensorflow.keras import layers, models
 
-from sklearn.model_selection import train_test_split #noqa
-from tensorflow.keras import layers, models #noqa
-from data_loader import load_traffic_data #noqa
+from data_loader import load_traffic_data
 
 # Suppress general Keras/Python user warnings
 warnings.filterwarnings('ignore', category=UserWarning)
@@ -51,7 +51,7 @@ base_model = tf.keras.applications.MobileNetV2(
     weights="imagenet"
 )
 
-# Unfreeze the base model, but freeze everything except the very lasy block
+# Unfreeze the base model, but freeze everything except the very lazy block
 base_model.trainable = True
 
 # MobileNetV2 has 154 layers. We freeze the first 130 and train the rest.

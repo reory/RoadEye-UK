@@ -1,4 +1,5 @@
 import sys
+
 import pytest
 
 # 1. Intercept the class definition before any test imports it
@@ -19,6 +20,9 @@ def clean_up_streams():
     """
     
     yield
-    if hasattr(sys.stderr, '__class__') and sys.stderr.__class__.__name__ == 'WarningFilterStream':
-        if not hasattr(sys.stderr, 'close'):
-            sys.stderr.close = lambda: None
+    if (
+        hasattr(sys.stderr, '__class__')
+        and sys.stderr.__class__.__name__ == 'WarningFilterStream'
+        and not hasattr(sys.stderr, 'close')
+    ):
+        sys.stderr.close = lambda: None

@@ -1,13 +1,31 @@
+import logging
 import os
+import warnings
+
+# Turn off oneDNN warning & set TF C++ logging level to quiet (3 = Errors only)
+os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+
+# Suppress Python-level deprecation and library warnings
+warnings.filterwarnings('ignore')
+
+import tensorflow as tf
+
+tf.get_logger().setLevel('ERROR')
+logging.getLogger('tensorflow').setLevel(logging.ERROR)
+
+import threading
 import time
+from collections import deque
+from queue import Empty, Queue
+
 import cv2
 import numpy as np
-import threading
-from queue import Queue, Empty
-from collections import deque
-from tensorflow.keras.models import load_model
 from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
+from tensorflow.keras.models import load_model
+
 from src.predict import get_dynamic_class_names
+
 
 class VideoStreamProcessor:
     def __init__(self, model_path, source=0, target_fps=30, img_size=(224, 224)):
@@ -40,6 +58,7 @@ class VideoStreamProcessor:
 
     def inference_worker(self):
         """Background thread dedicated entirely to heavy Keras model calculations."""
+        
         crop_counter = 0
         os.makedirs("debug_crops", exist_ok=True)
 
@@ -67,25 +86,33 @@ class VideoStreamProcessor:
                 confidence = predictions[0][class_idx]
 
                 label = self.classes[class_idx] if self.classes else f"Class {class_idx}"
-                print(f"[AI WORKER] Window @ ({wx1},{wy1}) -> {label} | Confidence: {confidence*100:.1f}%")
+                if confidence > 0.60:
+                    print(
+                        f"[AI WORKER] Window @ ({wx1},{wy1}) -> {label}" 
+                        f"| Confidence: {confidence*100:.1f}%"
+                    )
 
-                # Save exact raw crops WITH descriptive metadata in the filename
-                crop_counter += 1
-                debug_filename = f"debug_crops/crop_{crop_counter}_{label}_{int(confidence*100)}pct_at_{wx1}_{wy1}.jpg"
-                cv2.imwrite(debug_filename, crop)
+                # Only save debug crops if the AI is at least 50% confident
+                if confidence > 0.60:
+                    crop_counter += 1
+                    debug_filename = (
+                        f"debug_crops/crop_{crop_counter}_{label}_"
+                        f"{int(confidence*100)}pct_at_{wx1}_{wy1}.jpg"
+                    )
+                    cv2.imwrite(debug_filename, crop)
 
                 if confidence > best_confidence:
                     best_confidence = confidence
                     best_detection = (wx1, wy1, wx2, wy2, class_idx, confidence)
 
-            if best_detection is not None and best_confidence > 0.50:
+            if best_detection is not None and best_confidence > 0.70:
                 _, _, _, _, class_idx, _ = best_detection
                 
                 # Append to history for temporal filtering
                 self.class_history.append(class_idx)
                 
                 # Only display the detection if this class has been seen consistently
-                if self.class_history.count(class_idx) >= max(2, int(self.history_len * 0.3)):
+                if self.class_history.count(class_idx) >= max(2, int(self.history_len * 0.4)):
                     with self.detection_lock:
                         self.active_detections = [best_detection]
             else:
@@ -192,18 +219,6 @@ class VideoStreamProcessor:
                 # Draw the target scanning zone on the UI screen
                 cv2.rectangle(hud_frame, (roi_x1, roi_y1), (roi_x2, roi_y2), (255, 255, 0), 1)
 
-                # --- CALIBRATION GRID ---
-                for pct in range(0, 101, 10):
-                    x = int(w_max * pct / 100)
-                    cv2.line(hud_frame, (x, 0), (x, h_max), (0, 200, 0), 1)
-                    cv2.putText(hud_frame, f"{pct}%", (x + 3, 15),
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 255, 0), 1, cv2.LINE_AA)
-                    y = int(h_max * pct / 100)
-                    cv2.line(hud_frame, (0, y), (w_max, y), (0, 200, 0), 1)
-                    cv2.putText(hud_frame, f"{pct}%", (3, y - 3),
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 255, 0), 1, cv2.LINE_AA)
-                # --- END CALIBRATION GRID ---
-
                 # Offload heavy tasks to the background thread every 4th frame
                 if frame_count % 4 == 0 and not self.crop_queue.full():
                     candidate_boxes = self.find_sign_candidates(frame, roi_x1, roi_y1, roi_x2, roi_y2)
@@ -226,7 +241,11 @@ class VideoStreamProcessor:
                         color = (0, 255, 0) if confidence > 0.75 else (0, 165, 255)
                         cv2.rectangle(hud_frame, (x1, y1), (x2, y2), color, 2)
 
-                        label_text = f"{self.classes[class_idx]} ({confidence*100:.0f}%)" if self.classes else f"Sign ({confidence*100:.0f}%)"
+                        label_text = (
+                            f"{self.classes[class_idx]} ({confidence*100:.0f}%)" 
+                            if self.classes 
+                            else f"Sign ({confidence*100:.0f}%)"
+                        )
                         cv2.putText(hud_frame, label_text, (x1, y1 - 8),
                                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2, cv2.LINE_AA)
 

@@ -29,9 +29,9 @@ warnings.filterwarnings('ignore', category=DeprecationWarning)
 
 # NOW SAFELY IMPORT HEAVY LIBRARIES
 import numpy as np #noqa
-import tensorflow as tf #noqa
-from tensorflow.keras.preprocessing import image #noqa
-from tqdm import tqdm #noqa
+import tensorflow as tf
+from tensorflow.keras.preprocessing import image
+from tqdm import tqdm
 
 # Setup directory paths
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
