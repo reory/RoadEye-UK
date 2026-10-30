@@ -3,7 +3,6 @@ datasets/
 
 *.jpg
 *.jpeg
-*.png
 *.webp
 
 models/*.h5

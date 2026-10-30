@@ -36,10 +36,12 @@ a multi-threaded processing pipeline.
 ---
 
 <details>
-    <summary>📸 Screenshots</summary>
+    <summary>📸Screenshots</summary>
 
-### Detection Pipeline Output
-The screenshots below show isolated traffic sign candidates
+![20mph](screenshots/Screenshot%202026-10-30%20223249.png)
+![Lane Merge](screenshots/Screenshot%202026-10-30%20223330.png)
+
+The screenshots above show isolated traffic sign candidates
 extracted from dashcam footage before classification.
 
 During processing, candidate regions are detected using
@@ -52,9 +54,6 @@ model running in a background worker thread.
 [AI WORKER] Window @ (749,526) -> stop       | Confidence: 82.2%
 [AI WORKER] Window @ (734,516) -> road_work  | Confidence: 91.7%
 ```
-![](screenshots/Screenshot%202026-10-30%20223249.png)
-![](screenshots/Screenshot%202026-10-30%20223330.png)
-
 </details>
 
 ---
