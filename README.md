@@ -1,4 +1,5 @@
 # 👁️🚗 RoadEye-UK
+
 ![Last Commit](https://img.shields.io/github/last-commit/reory/roadeye-uk?cacheSeconds=60)
 ![Repo Size](https://img.shields.io/github/repo-size/reory/roadeye-uk?cacheSeconds=60)
 ![License](https://img.shields.io/badge/License-MIT-green)
@@ -7,29 +8,74 @@
 ![NumPy](https://img.shields.io/badge/NumPy-013243?style=for-the-badge&logo=numpy&logoColor=white)
 ![OpenCV](https://img.shields.io/badge/OpenCV-5C3EE8?style=for-the-badge&logo=opencv&logoColor=white)
 ![Pillow](https://img.shields.io/badge/Pillow-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Scikit-Learn](https://img.shields.io/badge/scikit--learn-%23F7931E.svg?style=for-the-badge&logo=scikit-learn&logoColor=white)
 ![TensorFlow](https://img.shields.io/badge/TensorFlow-FF6F00?style=for-the-badge&logo=TensorFlow&logoColor=white)
 
 
-RoadEye-UK is a real-time computer vision and machine learning application engineered to detect and classify traffic signs from UK driving footage. By pairing a high-speed classical computer vision preprocessing pipeline with a deep learning classification model, the system achieves smooth video playback while accurately tracking and identifying signs on the road.
+RoadEye-UK is a real-time traffic sign detection system for UK driving footage. It combines OpenCV preprocessing with TensorFlow classification to identify signs while maintaining smooth video playback.
+
+---
+
+## 🕵🏼‍♀️ The Problem
+
+Drivers and researchers often need a way to analyse road
+footage and identify traffic signs automatically.
+
+Manually reviewing video footage is slow, repetitive,
+and difficult to scale.
+
+## ✅ The Solution
+
+RoadEye-UK combines OpenCV and TensorFlow to detect
+and classify UK traffic signs in real time.
+
+The system highlights signs directly from dashcam
+footage while maintaining smooth playback through
+a multi-threaded processing pipeline.
+
+---
+
+<details>
+    <summary>📸 Screenshots</summary>
+
+### Detection Pipeline Output
+The screenshots below show isolated traffic sign candidates
+extracted from dashcam footage before classification.
+
+During processing, candidate regions are detected using
+OpenCV preprocessing techniques and passed to a TensorFlow
+model running in a background worker thread.
+
+- Example runtime output:
+
+```text
+[AI WORKER] Window @ (749,526) -> stop       | Confidence: 82.2%
+[AI WORKER] Window @ (734,516) -> road_work  | Confidence: 91.7%
+```
+![](screenshots/Screenshot%202026-10-30%20223249.png)
+![](screenshots/Screenshot%202026-10-30%20223330.png)
+
+</details>
 
 ---
 
 ## 🚀 Key Features
+
 **Multi-Threaded Architecture**: Separates the smooth 30 FPS video parsing/UI rendering frame updates from heavy neural network evaluations, preventing interface lag or dropped frames.
 
 **HSV Candidate Pre-Filter**: 
-Uses a lightweight color mask and contour analysis (RETR_CCOMP) to isolate red circular signs while filtering out background clutter like buses and barriers.
+Uses a lightweight colour mask and contour analysis (RETR_CCOMP) to isolate red circular signs while filtering out background clutter like buses and barriers.
 
-**Tight Region Isolation**: 
+**Precise Sign Cropping**: 
 Restricts bounding boxes to a 5% padding margin, preventing adjacent construction clutter and roadside hazards from bleeding into the sign crops.
 
-**Temporal Smoothing Buffer**: 
+**Prediction Smoothing**: 
 Uses a collections.deque history window to smooth out frame-to-frame fluctuations and filter out brief, erratic misclassifications.
 
-**Calibration HUD**: 
+**Calibration Overlay**: 
 Displays a real-time percentage grid overlay across the video stream window for quick coordinate alignment tuning.
 
-**Metadata Debug Output**: 
+**Debug Image Saving**: 
 Automatically saves isolated crops to a debug folder, naming files with the predicted class, confidence percentage, and coordinates for fast verification.
 
 ---
@@ -55,7 +101,7 @@ roadeye-uk/
 ---
 
 ## 🛠️ Tech Stack & Development Tools
-The codebase utilizes standard Python software development practices and packages:
+The codebase utilises standard Python software development practices and packages:
 
 - Core Systems: `Python`, `OpenCV` (cv2), `TensorFlow` / `Keras`, `NumPy`.
 
@@ -64,6 +110,8 @@ The codebase utilizes standard Python software development practices and package
 - Quality Metrics: coverage to track automated test suite performance percentages.
 
 - Code Hygiene: ruff for fast linting and structural syntax checking.
+
+---
 
 ## 💻 Setup & Installation
 Clone the Repository:
@@ -76,7 +124,7 @@ cd roadeye-uk
 Ensure you have your environment configured, then run:
 
 ```Bash
-uv pip install -r requirements.txt
+pip install -r requirements.txt
 ```
 ### Verify Asset Placement:
 Place your trained classification model inside the models/ folder as traffic_sign_model.keras.
@@ -87,9 +135,12 @@ Make sure the footage is short 10 - 30 secs
 To launch the real-time dashcam processing window interface, execute the application core directly:
 
 ```Bash
-python -m src/video_stream.py
+python -m src.video_stream
 ```
-### Controls & Controls Customization
+---
+
+<details>
+    <summary>Controls & Controls Customisation</summary>
 - Quit Stream: Press the ctrl + c key at any point while the window display loop is selected to terminate the worker threads, release the video handle, and close active view windows safely.
 
 - Calibrating the Scan Zone: Use the integrated green grid layout text tags to visually identify the boundaries of target signs. You can modify the region of interest bounds directly in process_stream() by adjusting the row percentage scales:
@@ -99,58 +150,53 @@ roi_x1, roi_y1 = int(w_max * 0.02), int(h_max * 0.10)
 roi_x2, roi_y2 = int(w_max * 0.65), int(h_max * 0.75)
 ```
 
-## 🔍 Debugging Code Evaluations
+### 🔍 Debugging Code Evaluations
 When running, the thread logic populates the local debug_crops/ subdirectory. Saved images will name themselves according to exactly what the model observed and predicted, allowing you to quickly spot classification issues:
 
 ```Plaintext
 debug_crops/crop_42_no_entry_84pct_at_856_441.jpg
 debug_crops/crop_43_road_work_93pct_at_729_491.jpg
 ```
+</details>
 
 ---
 
 ## 🧪 Testing
 - Type Pytest in the terminal to run the Pytest suite
 ```Bash 
-uv run Pytest
+pytest
 ```
 
 ---
-# 🛣️ Roadmap Features
 
-- [x] Automated Regression Testing: 
-Establish a robust `pytest` and `hypothesis` suite to lock down classical CV masking thresholds against future code regressions.
+<details>
+    <summary>🧠 What Made This Project Challenging?</summary>
 
-- [ ] Speed Limit Alerts: 
-Trigger real-time visual warnings on the HUD if the vehicle's speed exceeds the most recently detected speed limit sign.
+RoadEye-UK combines computer vision and machine learning in a real-time environment.
 
-- [ ] Centroid Object Tracking: 
-Use `Rust` to assign unique tracking IDs to signs across consecutive frames to eliminate duplicate counts and stabilize HUD bounding boxes.
+Building the application involved much more than writing Python code. Significant time was spent preparing training data, tuning the TensorFlow model, reducing false positives,
+and optimising inference performance to maintain smooth video playback.
 
-- [ ] SQLite Trip Logger: 
-Integrate a lightweight database to automatically log every uniquely identified sign alongside its timestamp and frame index.
+The project provided practical experience in balancing accuracy, performance, and maintainability within a machine-learning pipeline.
+</details>
 
-- [ ] Dynamic ROI Scaling: 
-Automatically adjust the camera scanning zone boundaries based on vehicle speed to focus further ahead at faster travel speeds.
+---
 
-- [ ] Adaptive Night Mode: 
-Implement `CLAHE` histogram equalization to normalize low-light frames and maintain strong HSV masking performance at night.
+## 🛣️ Roadmap Features
 
-- [ ] Distance Estimation: 
-Use pinhole camera geometry mathematics to calculate and display the approximate physical distance to the approaching sign.
-
-- [ ] Audio Notifications: 
-Add a text-to-speech engine to audibly announce critical safety signs like "Stop" or "No Entry" to the driver.
-
-- [ ] Interactive Analytics Dashboard: 
-Auto-generate a clean web-based summary report profiling sign distribution statistics at the completion of a video stream run.
-
-- [ ] Batch Inference Optimization: 
-Upgrade the background worker queue infrastructure to evaluate multiple candidate crops in a single parallel tensor batch call.
+- [x] Automated Regression Testing: Protect CV detection logic with `pytest` and `hypothesis` tests.
+- [ ] Audio Notifications: Announce important signs such as "Stop" and "No Entry".
+- [ ] SQLite Trip Logger: Store detected signs with timestamps and frame numbers.
+- [ ] Adaptive Night Mode: Improve sign detection in low-light conditions using `CLAHE`.
+- [ ] Speed Limit Alerts: Display a warning when the vehicle exceeds a detected speed limit.
+- [ ] Dynamic ROI Scaling Adjust the detection zone based on vehicle speed.
+- [ ] Interactive Analytics Dashboard: Generate a report showing sign detection statistics.
+- [ ] Distance Estimation: Estimate the distance to detected signs.
+- [ ] TensorFlow-Free CV Pipeline: Replace TensorFlow with OpenCV, OCR, and template matching.
+- [ ] Batch Inference Optimisation: Process multiple sign crops in parallel.
+- [ ] Centroid Object Tracking: Track signs across frames using unique IDs.
 
 ---
 
 **Built by Roy Peters** 🙂
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Roy%20Peters-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/roy-p-74980b382/)
-
-

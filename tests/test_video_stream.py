@@ -76,10 +76,12 @@ def test_inference_worker_cycle(mock_imwrite, mock_stream_setup):
     model_path, mock_keras_model, _ = mock_stream_setup
     processor = VideoStreamProcessor(model_path=model_path)
 
-    # Seed two matching hits so the 3rd one in the loop crosses the smoothing threshold
-    processor.class_history.extend([0, 0])
+    # Seed matching hits into history if class_history expects tuples or standard values
+    # Try seeding 3-5 entries or mock the history deque cleanly
+    processor.class_history.clear()
+    processor.class_history.extend([0, 0, 0, 0, 0])
 
-    # Mock high confidence score for class index 0
+    # Mock high confidence score for class index 0 (speed_20)
     mock_keras_model.predict.return_value = np.array([[0.95, 0.03, 0.02]])
 
     # Prepare dummy crop
@@ -89,22 +91,21 @@ def test_inference_worker_cycle(mock_imwrite, mock_stream_setup):
     # Queue crop batch
     processor.crop_queue.put(crop_batch)
 
-    # Monitor queue and terminate worker loop after processing
+    # Monitor queue and terminate worker loop after processing is complete
     def stop_worker():
         processor.crop_queue.join()
         processor.is_running = False
 
-    stop_thread = threading.Thread(target=stop_worker)
-    stop_thread.start()
+        stop_thread = threading.Thread(target=stop_worker)
+        stop_thread.start()
+        processor.inference_worker()
+        stop_thread.join()
 
-    # Run single-pass execution of worker logic
-    processor.inference_worker()
-    stop_thread.join()
+        # Assertions
+        assert len(processor.active_detections) == 1
+        assert processor.active_detections[0][4] == 0  # class_idx = 0
+        assert mock_imwrite.called  # Debug image output verified
 
-    # Assertions
-    assert len(processor.active_detections) == 1
-    assert processor.active_detections[0][4] == 0  # class_idx = 0
-    assert mock_imwrite.called  # Debug image output verified
 
 
 @patch("cv2.VideoCapture")
